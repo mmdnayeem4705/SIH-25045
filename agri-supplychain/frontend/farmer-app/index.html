@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard - AgriChain</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src-attr 'unsafe-inline' 'unsafe-hashes'; style-src 'self' 'unsafe-inline' https:; style-src-elem 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' http://localhost:3000 ws: wss:; media-src 'self' data: blob:;">
+    <link rel="stylesheet" href="/farmer-app/styles.css">
+    <style>
+        .lang { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid #2c3e50; border-radius:10px; background:#ffffff; color:#000000; }
+        .lang label { font-size:14px; color:#000000; }
+        .lang select {
+            min-width: 160px;
+            background: #d0c6daf0;
+            color: #4f85df;
+            border: none;
+            outline: none;
+        }
+    </style>
+    <script src="/i18n.js"></script>
+    <script src="/translations.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // If opened from 8000, redirect to 3000 to keep a single auth origin
+        (function() {
+            try {
+                var desiredOrigin = window.location.protocol + '//' + 'localhost:3000';
+                if (window.location.origin !== desiredOrigin) {
+                    var path = window.location.pathname.replace(/.*\/farmer-app\//, '/farmer-app/');
+                    var newUrl = desiredOrigin + path;
+                    window.location.replace(newUrl);
+                }
+            } catch (_) {}
+        })();
+    </script>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span data-i18n="nav.farmerPortal">AgriChain - Farmer Portal</span>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <span class="user-code" id="userCode">Loading...</span>
+                </div>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <div class="lang" style="margin-left:12px">
+                    <label for="farmerLang" data-i18n="lang.label">Language</label>
+                    <select id="farmerLang"></select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1 data-i18n="farmer.welcomeTitle">Welcome to Your Farmer Dashboard</h1>
+            <p data-i18n="farmer.welcomeSubtitle">Manage your crops, set prices, and connect with Agricultural Verification Officers</p>
+        </div>
+
+        <!-- Main Action Cards -->
+        <div class="action-cards">
+            <!-- Direct Selling Card -->
+            <a href="direct-sell.html" style="text-decoration: none; color: inherit;">
+            <div class="action-card direct-selling-card" id="directSellingCard">
+                <div class="card-icon">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h3 data-i18n="farmer.cards.directSelling.title">Direct Selling</h3>
+                <p data-i18n="farmer.cards.directSelling.desc">Set prices for your crops and sell directly to customers</p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="directSalesCount">0</span>
+                        <span class="stat-label">Active Listings</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="directSalesRevenue">₹0</span>
+                        <span class="stat-label">Total Revenue</span>
+                    </div>
+                </div>
+            </div>
+            </a>
+
+            <!-- Agricultural Verification Officer Card -->
+            <div class="action-card officer-contact-card" id="officerContactCard">
+                <div class="card-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h3 data-i18n="farmer.cards.officer.title">Contact Agricultural Verification Officer</h3>
+                <p data-i18n="farmer.cards.officer.desc">Get your crops verified, analyzed, and sold through officers</p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="officerRequestsCount">0</span>
+                        <span class="stat-label">Pending Requests</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="officerSalesRevenue">₹0</span>
+                        <span class="stat-label">Officer Sales</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="content-sections">
+            <!-- Direct Selling Section -->
+            <div class="content-section" id="directSellingSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-store"></i> Direct Selling</h2>
+                    <button class="btn btn-primary" onclick="showAddCropModal()">
+                        <i class="fas fa-plus"></i> Add New Crop Listing
+                    </button>
+                </div>
+
+                <!-- Crop Listings -->
+                <div class="crop-listings">
+                    <div class="listings-header">
+                        <h3>Your Crop Listings</h3>
+                        <div class="filters">
+                            <select id="cropStatusFilter" onchange="filterCropListings()">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="sold">Sold</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="listings-grid" id="cropListingsGrid">
+                        <!-- Crop listings will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Officer Contact Section -->
+            <div class="content-section" id="officerContactSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Agricultural Verification Officers</h2>
+                    <button class="btn btn-primary" onclick="showRequestOfficerModal()">
+                        <i class="fas fa-plus"></i> Request Officer Visit
+                    </button>
+                </div>
+
+                <!-- Nearby Officers -->
+                <div class="officers-section">
+                    <h3>Nearby Agricultural Verification Officers</h3>
+                    <div class="officers-grid" id="officersGrid">
+                        <!-- Officers will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Officer Requests -->
+                <div class="requests-section">
+                    <h3>Your Officer Requests</h3>
+                    <div class="requests-list" id="officerRequestsList">
+                        <!-- Requests will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalCrops">0</h3>
+                    <p>Total Crops Listed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalEarnings">₹0</h3>
+                    <p>Total Earnings</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalTransactions">0</h3>
+                    <p>Total Transactions</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="farmerRating">0.0</h3>
+                    <p>Your Rating</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Crop Modal -->
+    <div class="modal" id="addCropModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus"></i> Add New Crop Listing</h2>
+                <button class="close-btn" onclick="closeModal('addCropModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addCropForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cropName">Crop Name</label>
+                            <input type="text" id="cropName" name="cropName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cropType">Crop Type</label>
+                            <select id="cropType" name="cropType" required>
+                                <option value="">Select Type</option>
+                                <option value="CEREAL">Cereal</option>
+                                <option value="PULSE">Pulse</option>
+                                <option value="OILSEED">Oilseed</option>
+                                <option value="VEGETABLE">Vegetable</option>
+                                <option value="FRUIT">Fruit</option>
+                                <option value="SPICE">Spice</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <div class="quantity-input-group">
+                                <input type="number" id="quantity" name="quantity" min="0.1" step="0.1" required>
+                                <select id="quantityUnit" name="quantityUnit" required>
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="quintal">Quintals (100 kg)</option>
+                                    <option value="ton">Tons (1000 kg)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pricePerUnit">Price per Unit (₹)</label>
+                            <div class="price-input-group">
+                                <input type="number" id="pricePerUnit" name="pricePerUnit" min="1" step="0.01" required>
+                                <span class="price-unit-label" id="priceUnitLabel">per kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lifespan">Shelf Life</label>
+                            <div class="lifespan-input-group">
+                                <input type="number" id="lifespan" name="lifespan" min="1" required>
+                                <select id="lifespanUnit" name="lifespanUnit" required>
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                    <option value="months">Months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalPrice">Total Price (₹)</label>
+                            <input type="number" id="totalPrice" name="totalPrice" readonly>
+                            <small class="price-calculator">Auto-calculated based on quantity and unit price</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Describe your crop, quality, growing method, etc."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="harvestDate">Harvest Date</label>
+                        <input type="date" id="harvestDate" name="harvestDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cropImages">Crop Images</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload or drag & drop crop images</p>
+                                <small>Upload up to 5 images (JPG, PNG, max 5MB each)</small>
+                            </div>
+                            <input type="file" id="cropImages" name="cropImages" multiple accept="image/*" style="display: none;">
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addCropModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Crop Listing
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Officer Modal -->
+    <div class="modal" id="requestOfficerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-clipboard-check"></i> Request Officer Visit</h2>
+                <button class="close-btn" onclick="closeModal('requestOfficerModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="requestOfficerForm">
+                    <div class="form-group">
+                        <label for="selectedOfficer">Select Officer</label>
+                        <select id="selectedOfficer" name="selectedOfficer" required>
+                            <option value="">Select an Officer</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cropForVerification">Crop for Verification</label>
+                        <select id="cropForVerification" name="cropForVerification" required>
+                            <option value="">Select Crop</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preferredDate">Preferred Visit Date</label>
+                        <input type="date" id="preferredDate" name="preferredDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="visitPurpose">Purpose of Visit</label>
+                        <select id="visitPurpose" name="visitPurpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="QUALITY_VERIFICATION">Quality Verification</option>
+                            <option value="QUANTITY_MEASUREMENT">Quantity Measurement</option>
+                            <option value="PRICE_NEGOTIATION">Price Negotiation</option>
+                            <option value="CERTIFICATION">Certification</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specialInstructions">Special Instructions</label>
+                        <textarea id="specialInstructions" name="specialInstructions" placeholder="Any special instructions for the officer visit"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('requestOfficerModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function initI18n(){
+            var target = document.getElementById('farmerLang');
+            var langs = [
+                { code: 'en', label: 'English' },
+                { code: 'hi', label: 'हिन्दी (Hindi)' },
+                { code: 'te', label: 'తెలుగు (Telugu)' },
+                { code: 'kn', label: 'ಕನ್ನಡ (Kannada)' }
+            ];
+            langs.forEach(function(l){ var o=document.createElement('option'); o.value=l.code; o.textContent=l.label; target.appendChild(o); });
+            I18n.init({ translations: window.translations, defaultLang: 'en' });
+            target.value = I18n.current;
+            target.addEventListener('change', function(e){ I18n.apply(e.target.value); });
+        })();
+    </script>
+    <script src="/farmer-app/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rupee symbol -->
+  <path d="M15 10 L35 10 M25 10 L25 40 M15 25 L35 25 M15 25 L20 30 L15 35 L20 40 L25 35 L30 40 L35 35 L30 30 L35 25" 
+        stroke="#28a745" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

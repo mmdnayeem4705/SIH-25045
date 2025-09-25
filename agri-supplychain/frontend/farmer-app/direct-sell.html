@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Selling - AgriChain</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src-attr 'unsafe-inline' 'unsafe-hashes'; style-src 'self' 'unsafe-inline' https:; style-src-elem 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; media-src 'self' data: blob:; connect-src 'self' http://localhost:3000 ws: wss:;">
+    <link rel="stylesheet" href="/farmer-app/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .direct-sell-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .page-title h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .sell-form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .form-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .form-body {
+            padding: 40px;
+        }
+        
+        .form-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .section-title i {
+            color: #4facfe;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        .quantity-price-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .quantity-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .quantity-input-group input {
+            flex: 1;
+        }
+        
+        .quantity-input-group select {
+            min-width: 120px;
+        }
+        
+        .price-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+        
+        .price-display .price-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .price-display .price-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        
+        .image-upload-section {
+            border: 2px dashed #4facfe;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+        
+        .image-upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        
+        .image-upload-section.dragover {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #4facfe;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-preview-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .image-remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .lifespan-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .toast.error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast.success .toast-icon {
+            color: #28a745;
+        }
+        
+        .toast.error .toast-icon {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quantity-price-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .lifespan-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Ensure we run on backend origin to reuse the same token storage
+        (function() {
+            try {
+                var desiredOrigin = window.location.protocol + '//' + 'localhost:3000';
+                if (window.location.origin !== desiredOrigin) {
+                    var path = window.location.pathname.replace(/.*\/farmer-app\//, '/farmer-app/');
+                    var newUrl = desiredOrigin + path;
+                    window.location.replace(newUrl);
+                }
+            } catch (_) {}
+        })();
+    </script>
+    <noscript>
+        <div style="padding:12px;background:#fff3cd;color:#856404;border:1px solid #ffeeba;margin:10px;border-radius:6px;">JavaScript is disabled. Please enable it to use Direct Selling.</div>
+    </noscript>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span>AgriChain - Direct Selling</span>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <span class="user-code" id="userCode">Loading...</span>
+                </div>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="direct-sell-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-store"></i>
+                <h1>Direct Selling</h1>
+            </div>
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+
+        <!-- Sell Form -->
+        <div class="sell-form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-plus-circle"></i> List Your Crop for Direct Sale</h2>
+                <p>Upload images, set quantity, price, and other details to sell directly to customers</p>
+            </div>
+            
+            <div class="form-body">
+                <form id="directSellForm">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Basic Information</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cropName">Crop Name *</label>
+                                <input type="text" id="cropName" name="cropName" placeholder="e.g., Basmati Rice, Wheat, Tomatoes" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cropType">Crop Type *</label>
+                                <select id="cropType" name="cropType" required>
+                                    <option value="">Select Crop Type</option>
+                                    <option value="CEREAL">Cereal (Rice, Wheat, Corn)</option>
+                                    <option value="PULSE">Pulse (Lentils, Beans)</option>
+                                    <option value="OILSEED">Oilseed (Mustard, Sunflower)</option>
+                                    <option value="VEGETABLE">Vegetable (Tomato, Onion, Potato)</option>
+                                    <option value="FRUIT">Fruit (Mango, Apple, Banana)</option>
+                                    <option value="SPICE">Spice (Turmeric, Chili, Coriander)</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Crop Description</label>
+                            <textarea id="description" name="description" rows="3" placeholder="Describe your crop quality, growing method, organic status, etc."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Quantity and Pricing Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>Quantity & Pricing</span>
+                        </div>
+                        
+                        <div class="quantity-price-group">
+                            <div class="form-group">
+                                <label for="quantity">Available Quantity *</label>
+                                <div class="quantity-input-group">
+                                    <input type="number" id="quantity" name="quantity" min="0.1" step="0.1" placeholder="0.0" required>
+                                    <select id="quantityUnit" name="quantityUnit" required>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="quintal">Quintals (100 kg)</option>
+                                        <option value="ton">Tons (1000 kg)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="pricePerUnit">Price per Unit (₹) *</label>
+                                <input type="number" id="pricePerUnit" name="pricePerUnit" min="1" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        
+                        <div class="price-display">
+                            <div class="price-label">Total Value</div>
+                            <div class="price-value" id="totalPrice">₹0.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Shelf Life Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-clock"></i>
+                            <span>Shelf Life & Harvest Info</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="harvestDate">Harvest Date *</label>
+                                <input type="date" id="harvestDate" name="harvestDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="lifespan">Shelf Life *</label>
+                                <div class="lifespan-group">
+                                    <input type="number" id="lifespan" name="lifespan" min="1" placeholder="30" required>
+                                    <select id="lifespanUnit" name="lifespanUnit" required>
+                                        <option value="days">Days</option>
+                                        <option value="weeks">Weeks</option>
+                                        <option value="months">Months</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-images"></i>
+                            <span>Crop Images</span>
+                        </div>
+                        
+                        <div class="image-upload-section" id="imageUploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">Click to upload or drag & drop crop images</div>
+                            <div class="upload-hint">Upload up to 5 images (JPG, PNG, max 5MB each)</div>
+                            <input type="file" id="cropImages" name="cropImages" multiple accept="image/*" style="display: none;">
+                        </div>
+                        
+                        <div class="image-preview-grid" id="imagePreview"></div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="goBack()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-store"></i> List for Sale
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // Show runtime JS errors on the page to avoid a blank screen without clues
+        window.addEventListener('error', function(e) {
+            const box = document.createElement('div');
+            box.style.cssText = 'position:fixed;left:10px;bottom:10px;right:10px;z-index:99999;background:#fff1f0;color:#a8071a;border:1px solid #ffa39e;padding:12px;border-radius:8px;font-family:system-ui,Segoe UI,Roboto,Arial;max-height:40vh;overflow:auto;';
+            box.innerHTML = '<strong>JavaScript error:</strong> ' + (e.message || 'Unknown') + '<br><small>' + (e.filename || '') + ':' + (e.lineno || '') + '</small>';
+            document.body.appendChild(box);
+        });
+        // Global variables
+        let uploadedImages = [];
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupEventListeners();
+            setDefaultDates();
+        });
+
+        // Initialize page
+        function initializePage() {
+            // Load user info
+            loadUserInfo();
+            
+            // Set default harvest date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('harvestDate').value = today;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('directSellForm').addEventListener('submit', handleFormSubmit);
+            
+            // Image upload
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('cropImages');
+            
+            imageUploadArea.addEventListener('click', () => imageInput.click());
+            imageUploadArea.addEventListener('dragover', handleDragOver);
+            imageUploadArea.addEventListener('dragleave', handleDragLeave);
+            imageUploadArea.addEventListener('drop', handleDrop);
+            imageInput.addEventListener('change', handleImageSelect);
+            
+            // Price calculation
+            document.getElementById('quantity').addEventListener('input', calculateTotalPrice);
+            document.getElementById('pricePerUnit').addEventListener('input', calculateTotalPrice);
+            document.getElementById('quantityUnit').addEventListener('change', calculateTotalPrice);
+        }
+
+        // Set default dates
+        function setDefaultDates() {
+            const today = new Date();
+            const harvestDate = new Date(today);
+            harvestDate.setDate(today.getDate() - 7); // Default to 7 days ago
+            
+            document.getElementById('harvestDate').value = harvestDate.toISOString().split('T')[0];
+        }
+
+        // Load user information
+        function loadUserInfo() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/auth/index.html';
+                return;
+            }
+
+            fetch(`${API_BASE_URL}/auth/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('userName').textContent = data.user.name;
+                    document.getElementById('userCode').textContent = data.user.farmerCode || 'N/A';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user info:', error);
+            });
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                // Show loading
+                submitBtn.innerHTML = '<span class="loading"></span> Listing...';
+                submitBtn.disabled = true;
+                
+                // Get form data
+                const formData = new FormData(e.target);
+                const cropData = {
+                    name: formData.get('cropName'),
+                    type: formData.get('cropType'),
+                    description: formData.get('description'),
+                    quantity: parseFloat(formData.get('quantity')),
+                    quantityUnit: formData.get('quantityUnit'),
+                    pricePerUnit: parseFloat(formData.get('pricePerUnit')),
+                    harvestDate: formData.get('harvestDate'),
+                    lifespan: parseInt(formData.get('lifespan')),
+                    lifespanUnit: formData.get('lifespanUnit'),
+                    images: uploadedImages
+                };
+                
+                // Calculate total price
+                cropData.totalPrice = cropData.quantity * cropData.pricePerUnit;
+                
+                // Send to backend
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/crops`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(cropData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('success', 'Crop listed successfully! Redirecting to dashboard...');
+                    setTimeout(() => {
+                        window.location.href = '/farmer-app/index.html';
+                    }, 2000);
+                } else {
+                    showToast('error', result.message || 'Failed to list crop');
+                }
+                
+            } catch (error) {
+                console.error('Error listing crop:', error);
+                showToast('error', 'Failed to list crop. Please try again.');
+            } finally {
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Handle drag over
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        // Handle drag leave
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        // Handle drop
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            handleImageFiles(files);
+        }
+
+        // Handle image selection
+        function handleImageSelect(e) {
+            const files = Array.from(e.target.files);
+            handleImageFiles(files);
+        }
+
+        // Handle image files
+        function handleImageFiles(files) {
+            const validFiles = files.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    showToast('error', 'Please select only image files');
+                    return false;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('error', 'Image size should be less than 5MB');
+                    return false;
+                }
+                return true;
+            });
+            
+            if (uploadedImages.length + validFiles.length > 5) {
+                showToast('error', 'Maximum 5 images allowed');
+                return;
+            }
+            
+            validFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImages.push({
+                        name: file.name,
+                        data: e.target.result,
+                        size: file.size
+                    });
+                    updateImagePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Update image preview
+        function updateImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            
+            uploadedImages.forEach((image, index) => {
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                item.innerHTML = `
+                    <img src="${image.data}" alt="${image.name}">
+                    <button class="image-remove-btn" onclick="removeImage(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                preview.appendChild(item);
+            });
+        }
+
+        // Remove image
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            updateImagePreview();
+        }
+
+        // Calculate total price
+        function calculateTotalPrice() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const pricePerUnit = parseFloat(document.getElementById('pricePerUnit').value) || 0;
+            const totalPrice = quantity * pricePerUnit;
+            
+            document.getElementById('totalPrice').textContent = `₹${totalPrice.toFixed(2)}`;
+        }
+
+        // Show toast notification
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Hide toast
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Go back to dashboard
+        function goBack() {
+            window.location.href = '/farmer-app/index.html';
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            window.location.href = '/auth/index.html';
+        }
+    </script>
+</body>
+</html>

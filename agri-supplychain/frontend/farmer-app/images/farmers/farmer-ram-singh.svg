@@ -1,0 +1,70 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#e6f3ff"/>
+  
+  <!-- Farmer figure -->
+  <g transform="translate(100, 120)">
+    <!-- Body -->
+    <ellipse cx="0" cy="20" rx="25" ry="35" fill="#8B4513"/>
+    
+    <!-- Head -->
+    <circle cx="0" cy="-30" r="20" fill="#FDBCB4"/>
+    
+    <!-- Hat -->
+    <ellipse cx="0" cy="-45" rx="18" ry="8" fill="#8B4513"/>
+    <rect x="-18" y="-45" width="36" height="15" fill="#8B4513"/>
+    
+    <!-- Arms -->
+    <ellipse cx="-30" cy="0" rx="8" ry="20" fill="#FDBCB4" transform="rotate(-20 -30 0)"/>
+    <ellipse cx="30" cy="0" rx="8" ry="20" fill="#FDBCB4" transform="rotate(20 30 0)"/>
+    
+    <!-- Hands -->
+    <circle cx="-35" cy="15" r="6" fill="#FDBCB4"/>
+    <circle cx="35" cy="15" r="6" fill="#FDBCB4"/>
+    
+    <!-- Legs -->
+    <ellipse cx="-10" cy="50" rx="8" ry="25" fill="#4169E1"/>
+    <ellipse cx="10" cy="50" rx="8" ry="25" fill="#4169E1"/>
+    
+    <!-- Feet -->
+    <ellipse cx="-10" cy="70" rx="10" ry="5" fill="#000000"/>
+    <ellipse cx="10" cy="70" rx="10" ry="5" fill="#000000"/>
+    
+    <!-- Face details -->
+    <circle cx="-6" cy="-35" r="2" fill="#000000"/>
+    <circle cx="6" cy="-35" r="2" fill="#000000"/>
+    <path d="M-8 -25 Q0 -20 8 -25" stroke="#000000" stroke-width="2" fill="none"/>
+    
+    <!-- Mustache -->
+    <path d="M-8 -28 Q0 -30 8 -28" stroke="#8B4513" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Tools -->
+  <g transform="translate(50, 100)">
+    <!-- Hoe -->
+    <line x1="0" y1="0" x2="0" y2="40" stroke="#8B4513" stroke-width="3"/>
+    <rect x="-15" y="35" width="30" height="5" fill="#C0C0C0"/>
+  </g>
+  
+  <g transform="translate(150, 90)">
+    <!-- Sickle -->
+    <line x1="0" y1="0" x2="0" y2="30" stroke="#8B4513" stroke-width="2"/>
+    <path d="M0 25 Q15 20 20 15 Q25 10 20 5 Q15 0 0 5" stroke="#C0C0C0" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Ground -->
+  <rect x="0" y="180" width="200" height="20" fill="#8B4513"/>
+  
+  <!-- Plants in background -->
+  <g fill="#228B22" opacity="0.6">
+    <path d="M20 160 Q25 150 30 160 Q25 170 20 160"/>
+    <path d="M40 165 Q45 155 50 165 Q45 175 40 165"/>
+    <path d="M60 160 Q65 150 70 160 Q65 170 60 160"/>
+    <path d="M80 165 Q85 155 90 165 Q85 175 80 165"/>
+    <path d="M100 160 Q105 150 110 160 Q105 170 100 160"/>
+    <path d="M120 165 Q125 155 130 165 Q125 175 120 165"/>
+    <path d="M140 160 Q145 150 150 160 Q145 170 140 160"/>
+    <path d="M160 165 Q165 155 170 165 Q165 175 160 165"/>
+    <path d="M180 160 Q185 150 190 160 Q185 170 180 160"/>
+  </g>
+</svg>

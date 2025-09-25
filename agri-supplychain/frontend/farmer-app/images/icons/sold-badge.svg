@@ -1,0 +1,17 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="#007bff" stroke="#0056b3" stroke-width="2"/>
+  
+  <!-- Sold icon -->
+  <g fill="#ffffff">
+    <!-- Shopping bag -->
+    <path d="M30 25 L35 25 L40 30 L40 70 L30 70 Z" fill="#ffffff"/>
+    <rect x="32" y="20" width="6" height="8" fill="#ffffff"/>
+    
+    <!-- Handle -->
+    <path d="M32 20 Q32 15 37 15 Q42 15 42 20" stroke="#ffffff" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Check mark -->
+  <path d="M35 45 L42 52 L55 40" stroke="#007bff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

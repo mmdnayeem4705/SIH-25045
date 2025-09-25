@@ -1,0 +1,45 @@
+const cfg = require("./token-config.json");
+})();
+  console.log("Balance:", ethers.formatEther(bal), "ETH");
+  const bal = await ethers.provider.getBalance(addr);
+  await network.provider.send("hardhat_setBalance", [addr, "0x" + amountWei.toString(16)]);
+  const amountWei = 5000n * 10n**18n; // 5000 ETH
+  const addr = "0x3AF59d25Bf2046bca7e44F93f976969090907d84"; // <-- exact address
+(async () => {
+console.log("Balance:", ethers.formatEther(bal), "ETH");
+const bal = await ethers.provider.getBalance(addr);
+await network.provider.send("hardhat_setBalance", [addr, "0x" + amountWei.toString(16)]);
+const amountWei = 5000n * 10n**18n; // 5000 ETH
+const addr = "PASTE_YOUR_METAMASK_SELECTED_ADDRESS_HERE";
+.
+npx hardhat node
+cd C:\Users\LENOVO\Desktop\SIH\SIH\agri-supplychain\blockchain
+for /f "tokens=5" %a in ('netstat -ano ^| findstr :8545') do taskkill /F /PID %a
+REM Restart fresh node
+ETH"); 
+console.log("Balance:", ethers.formatEther(bal), "
+const bal = await ethers.provider.getBalance(addr);
+const tx = await sender.sendTransaction({ to: addr, value:await tx.wait();
+const [sender] = await ethers.getSigners();
+const addr = "0x3AF59d25Bf2046bca7e44F93f976969090907d84";
+npx hardhat console --network localhost
+console.log("Balance:", ethers.formatEther(bal), "ETH");
+const bal = await ethers.provider.getBalance(addr);
+await network.provider.send("hardhat_setBalance", [addr, "0x" + amountWei.toString(16)]);
+const amountWei = 5000n * 10n**18n; // 5000 ETH
+const addr = "0x3AF59d25Bf2046bca7e44F93f976969090907d84";
+  console.log(a, "=>", ethers.formatEther(bal), "ETH");
+  const bal = await ethers.provider.getBalance(a);
+  await network.provider.send("hardhat_setBalance", [a, ethers.toBeHex(amount)]);
+for (const a of targets) {
+const amount = ethers.parseEther("5000"); // 5000 ETH
+];
+  "0x6C4fd29913ab833f03041A0e8926b241C1773Be5"
+  "0x594C40f2Ff4562f10414935bB5EEDB711A123DF8",
+  "0x3AF59d25Bf2046bca7e44F93f976969090907d84",
+const targets = [ ethers.parseEther("5000"); // 5000 ETH
+];
+  "0x6C4fd29913ab833f03041A0e8926b241C1773Be5"
+  "0x594C40f2Ff4562f10414935bB5EEDB711A123DF8",
+  "0x3AF59d25Bf2046bca7e44F93f976969090907d84",
+const targets = [

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleCropCheck - AI Crop Quality Verifier</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .loader {
+            border-top-color: #4f46e5;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result-card, .gemini-market-card, .gemini-shelf-life-card {
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        .result-card.show, .gemini-market-card.show, .gemini-shelf-life-card.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6">
+        <!-- Header Section -->
+        <div class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">SimpleCropCheck ✨</h1>
+            <p class="text-gray-500 mt-2">AI-Powered Analysis</p>
+            <p id="location-info" class="text-xs text-gray-400 mt-1">Location: Alur Duddanahally, Karnataka</p>
+        </div>
+
+        <!-- Image Selection Section -->
+        <div id="selection-area">
+             <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 transition" id="image-drop-area">
+                <p class="text-gray-500 mb-4" id="upload-text">Upload an image or use your camera</p>
+                <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 justify-center">
+                    <button id="upload-btn" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">Upload File</button>
+                    <button id="start-camera-btn" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">Use Camera</button>
+                </div>
+                <input type="file" id="image-upload" class="hidden" accept="image/*">
+                <div id="image-preview-container" class="mt-4 hidden">
+                    <img id="image-preview" class="max-h-64 mx-auto rounded-lg shadow-md" alt="Image preview"/>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Camera View (Initially hidden) -->
+        <div id="camera-view" class="hidden">
+            <video id="video-stream" class="w-full rounded-lg shadow-md" autoplay playsinline></video>
+            <canvas id="canvas" class="hidden"></canvas>
+            <div class="mt-4 flex space-x-2">
+                <button id="capture-btn" class="flex-1 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700">Capture Photo</button>
+                <button id="cancel-camera-btn" class="bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2">
+            <button id="check-quality-btn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                Analyze Crop
+            </button>
+            <button id="reset-btn" class="w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition hidden">
+                Use New Image
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="result-section" class="hidden space-y-4">
+             <div id="loader" class="flex justify-center items-center my-4 hidden">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+                <p class="ml-4 text-gray-600">AI is analyzing the crop...</p>
+            </div>
+            <div id="result-card" class="result-card p-6 rounded-lg text-center">
+                <h2 id="result-text" class="text-3xl font-bold"></h2>
+                <p id="crop-name-text" class="text-gray-500 mt-1"></p>
+                <p id="reason-text" class="text-gray-600 mt-3 text-sm italic bg-gray-100 p-2 rounded-md"></p>
+            </div>
+            <!-- Gemini Features -->
+            <div id="gemini-features" class="hidden text-center space-y-4">
+                 <div id="gemini-market-loader" class="flex justify-center items-center my-4 hidden">
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8"></div>
+                    <p class="ml-3 text-gray-600">Searching for live market data...</p>
+                </div>
+                <div id="gemini-market-card" class="gemini-market-card hidden bg-gray-50 p-4 rounded-lg text-left text-gray-700 space-y-1">
+                    <h3 class="font-bold text-center text-lg mb-2 text-gray-800">Price Analysis</h3>
+                    <div id="gemini-market-content"></div>
+                    <p class="text-xs text-gray-500 pt-2 italic">*Based on latest public market data from Google Search. Price is an estimate.</p>
+                </div>
+                <div id="gemini-shelf-life-loader" class="flex justify-center items-center my-4 hidden">
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8"></div>
+                    <p class="ml-3 text-gray-600">Estimating shelf life...</p>
+                </div>
+                <div id="gemini-shelf-life-card" class="gemini-shelf-life-card hidden bg-gray-50 p-4 rounded-lg text-left text-gray-700 space-y-1">
+                    <h3 class="font-bold text-center text-lg mb-2 text-gray-800">Shelf Life</h3>
+                    <div id="gemini-shelf-life-content"></div>
+                </div>
+                 <!-- Hidden buttons, kept for potential future use but not displayed -->
+                <button id="get-market-value-btn" class="hidden"></button>
+                <button id="get-shelf-life-btn" class="hidden"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM element references
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const checkQualityBtn = document.getElementById('check-quality-btn');
+        const resultSection = document.getElementById('result-section');
+        const resultText = document.getElementById('result-text');
+        const cropNameText = document.getElementById('crop-name-text');
+        const reasonText = document.getElementById('reason-text');
+        const loader = document.getElementById('loader');
+        const imageDropArea = document.getElementById('image-drop-area');
+        const uploadText = document.getElementById('upload-text');
+        const resultCard = document.getElementById('result-card');
+        const geminiFeatures = document.getElementById('gemini-features');
+        
+        // Market Value elements
+        const getMarketValueBtn = document.getElementById('get-market-value-btn');
+        const geminiMarketLoader = document.getElementById('gemini-market-loader');
+        const geminiMarketCard = document.getElementById('gemini-market-card');
+        const geminiMarketContent = document.getElementById('gemini-market-content');
+
+        // Shelf Life elements
+        const getShelfLifeBtn = document.getElementById('get-shelf-life-btn');
+        const geminiShelfLifeLoader = document.getElementById('gemini-shelf-life-loader');
+        const geminiShelfLifeCard = document.getElementById('gemini-shelf-life-card');
+        const geminiShelfLifeContent = document.getElementById('gemini-shelf-life-content');
+
+        // Camera elements
+        const selectionArea = document.getElementById('selection-area');
+        const cameraView = document.getElementById('camera-view');
+        const videoStream = document.getElementById('video-stream');
+        const canvas = document.getElementById('canvas');
+        const uploadBtn = document.getElementById('upload-btn');
+        const startCameraBtn = document.getElementById('start-camera-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const cancelCameraBtn = document.getElementById('cancel-camera-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Store Gemini results
+        let currentCrop = {
+            name: null,
+            grade: null,
+            reason: null,
+        };
+        let stream = null; // To hold the camera stream
+
+        // --- Event Listeners ---
+        imageDropArea.addEventListener('click', () => imageUpload.click());
+        imageDropArea.addEventListener('dragover', (event) => { event.preventDefault(); imageDropArea.classList.add('border-indigo-500', 'bg-indigo-50'); });
+        imageDropArea.addEventListener('dragleave', () => { imageDropArea.classList.remove('border-indigo-500', 'bg-indigo-50'); });
+        imageDropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            imageDropArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                imageUpload.files = files;
+                handleImageUpload({ target: imageUpload });
+            }
+        });
+
+        uploadBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); 
+            imageUpload.click();
+        });
+        imageUpload.addEventListener('change', handleImageUpload);
+        checkQualityBtn.addEventListener('click', classifyImageWithGemini);
+        resetBtn.addEventListener('click', resetUI);
+        
+        // Camera Listeners
+        startCameraBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            startCamera();
+        });
+        captureBtn.addEventListener('click', capturePhoto);
+        cancelCameraBtn.addEventListener('click', stopCamera);
+
+
+        // --- Functions ---
+
+        function resetUI() {
+            imagePreview.src = '';
+            imagePreviewContainer.classList.add('hidden');
+            imageUpload.value = ''; 
+
+            uploadText.parentElement.querySelector('.flex').classList.remove('hidden');
+            uploadText.classList.remove('hidden');
+            
+            checkQualityBtn.disabled = true;
+            resetBtn.classList.add('hidden');
+
+            resultSection.classList.add('hidden');
+            geminiFeatures.classList.add('hidden');
+            geminiMarketCard.classList.add('hidden');
+            geminiShelfLifeCard.classList.add('hidden');
+            resultCard.classList.remove('show');
+            resultCard.className = 'result-card p-6 rounded-lg text-center';
+        }
+        
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                resetUI(); 
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                    uploadText.parentElement.querySelector('.flex').classList.add('hidden');
+                    uploadText.classList.add('hidden');
+                    checkQualityBtn.disabled = false;
+                    resetBtn.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                alert("Please select a valid image file.");
+            }
+        }
+        
+        async function startCamera() {
+            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+                try {
+                    const constraints = { video: { facingMode: 'environment' } };
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    videoStream.srcObject = stream;
+                    selectionArea.classList.add('hidden');
+                    cameraView.classList.remove('hidden');
+                    checkQualityBtn.disabled = true;
+                    resetBtn.classList.add('hidden');
+                } catch (error) {
+                    console.error("Error accessing rear camera:", error);
+                    try {
+                        const fallbackConstraints = { video: true };
+                        stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+                        videoStream.srcObject = stream;
+                        selectionArea.classList.add('hidden');
+                        cameraView.classList.remove('hidden');
+                    } catch (fallbackError) {
+                        console.error("Error accessing fallback camera:", fallbackError);
+                        alert("Could not access any camera. Please check your device settings and permissions.");
+                    }
+                }
+            } else {
+                alert("Camera access is not supported by your browser.");
+            }
+        }
+
+        function capturePhoto() {
+            canvas.width = videoStream.videoWidth;
+            canvas.height = videoStream.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            
+            resetUI();
+            
+            imagePreview.src = dataUrl;
+            imagePreviewContainer.classList.remove('hidden');
+            uploadText.parentElement.querySelector('.flex').classList.add('hidden');
+            uploadText.classList.add('hidden');
+            checkQualityBtn.disabled = false;
+            resetBtn.classList.remove('hidden');
+            
+            stopCamera();
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            selectionArea.classList.remove('hidden');
+            cameraView.classList.add('hidden');
+        }
+
+        async function classifyImageWithGemini() {
+            resultSection.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            resultCard.classList.remove('show');
+            geminiFeatures.classList.add('hidden');
+            geminiMarketCard.classList.add('hidden');
+            geminiShelfLifeCard.classList.add('hidden');
+            checkQualityBtn.disabled = true;
+            resetBtn.disabled = true;
+
+            const base64ImageData = imagePreview.src.split(',')[1];
+            const prompt = `Critically analyze the image. First, determine if it contains a single type of agricultural crop (like a fruit or vegetable). If it is not a crop, respond with the exact JSON: {"grade": "N/A", "cropName": "Not a Crop", "reason": "The image does not appear to contain an agricultural product."}. If it IS a crop, respond in valid JSON format with three keys: 'grade' (a string: 'Premium', 'Good', 'Standard', or 'Poor'), 'cropName' (the name of the crop), and 'reason' (a brief, one-sentence explanation). Do not wrap the JSON in markdown formatting.`;
+
+            try {
+                const result = await callGeminiAPI(prompt, base64ImageData);
+                let responseText = result.candidates[0].content.parts[0].text;
+                
+                const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    responseText = jsonMatch[1];
+                }
+
+                const resultJson = JSON.parse(responseText);
+                
+                loader.classList.add('hidden'); // Hide main loader after first result
+
+                currentCrop.name = resultJson.cropName;
+                currentCrop.grade = resultJson.grade;
+                currentCrop.reason = resultJson.reason;
+
+                displayResult(currentCrop);
+
+                // If it's a valid crop, automatically fetch other details
+                if (currentCrop.name !== "Not a Crop") {
+                    geminiFeatures.classList.remove('hidden');
+                    // These will now run in parallel
+                    getMarketValue();
+                    getShelfLife();
+                }
+
+            } catch (error) {
+                console.error("Error during AI classification:", error);
+                alert("Failed to analyze the image. The model may have had trouble. Please try a clearer image.");
+                resultSection.classList.add('hidden');
+                loader.classList.add('hidden');
+            } finally {
+                checkQualityBtn.disabled = false;
+                resetBtn.disabled = false;
+            }
+        }
+
+        async function getMarketValue() {
+            geminiMarketLoader.classList.remove('hidden');
+            geminiMarketCard.classList.add('hidden');
+
+            const today = "Thursday, September 25, 2025";
+            const location = "Alur Duddanahally, Karnataka, India";
+
+            const prompt = `Act as an expert agricultural market analyst for ${location} on ${today}. Use Google Search to find the latest data for a '${currentCrop.grade}' quality '${currentCrop.name}'. Respond in a valid, minified JSON object with two keys: "priceRange": A string with the estimated price per kg in INR (e.g., "₹80 - ₹95 per kg"), and "justification": A very brief, concise reason for the price (e.g., "High demand due to festival season."). Do not use markdown.`;
+
+            try {
+                const result = await callGeminiAPI(prompt, null, 3, 1000, true);
+                let marketValue = result.candidates[0].content.parts[0].text;
+                
+                const jsonMatch = marketValue.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    marketValue = jsonMatch[1];
+                }
+
+                const marketJson = JSON.parse(marketValue);
+
+                geminiMarketContent.innerHTML = `
+                    <p><strong class="font-semibold text-gray-800">Price:</strong> ${marketJson.priceRange}</p>
+                    <p><strong class="font-semibold text-gray-800">Reason:</strong> ${marketJson.justification}</p>
+                `;
+
+                geminiMarketCard.classList.remove('hidden');
+                setTimeout(() => geminiMarketCard.classList.add('show'), 10);
+            } catch(error) {
+                console.error("Error getting market value from AI:", error);
+                 geminiMarketContent.innerHTML = `<p>Sorry, couldn't generate a market estimate. This can happen if real-time data is not publicly available.</p>`;
+            } finally {
+                geminiMarketLoader.classList.add('hidden');
+            }
+        }
+
+        async function getShelfLife() {
+            geminiShelfLifeLoader.classList.remove('hidden');
+            geminiShelfLifeCard.classList.add('hidden');
+
+            const prompt = `For a '${currentCrop.grade}' quality '${currentCrop.name}', estimate its shelf life. Respond in a valid, minified JSON object with two keys: "shelfLife": A string for the estimated duration (e.g., "5-7 days"), and "reason": A very brief, concise reason (e.g., "Optimal freshness."). Do not use markdown.`;
+
+            try {
+                const result = await callGeminiAPI(prompt);
+                let shelfLife = result.candidates[0].content.parts[0].text;
+                
+                const jsonMatch = shelfLife.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    shelfLife = jsonMatch[1];
+                }
+
+                const shelfLifeJson = JSON.parse(shelfLife);
+                
+                geminiShelfLifeContent.innerHTML = `
+                    <p><strong class="font-semibold text-gray-800">Estimate:</strong> ${shelfLifeJson.shelfLife}</p>
+                    <p><strong class="font-semibold text-gray-800">Basis:</strong> ${shelfLifeJson.reason}</p>
+                `;
+                geminiShelfLifeCard.classList.remove('hidden');
+                setTimeout(() => geminiShelfLifeCard.classList.add('show'), 10);
+            } catch(error) {
+                 console.error("Error getting shelf life from AI:", error);
+                 geminiShelfLifeContent.innerHTML = `<p>Sorry, couldn't generate a shelf life estimate at this moment.</p>`;
+            } finally {
+                geminiShelfLifeLoader.classList.add('hidden');
+            }
+        }
+        
+        function displayResult(cropInfo) {
+            resultCard.classList.remove('bg-blue-100', 'text-blue-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800', 'bg-gray-100', 'text-gray-800');
+            cropNameText.innerText = `Detected: ${cropInfo.name}`;
+            resultText.innerText = `Grade: ${cropInfo.grade}`;
+            reasonText.innerText = `Note: ${cropInfo.reason}`;
+
+            switch (cropInfo.grade) {
+                case 'Premium':
+                    resultCard.classList.add('bg-blue-100', 'text-blue-800');
+                    break;
+                case 'Good':
+                    resultCard.classList.add('bg-green-100', 'text-green-800');
+                    break;
+                case 'Standard':
+                    resultCard.classList.add('bg-yellow-100', 'text-yellow-800');
+                    break;
+                case 'Poor':
+                    resultCard.classList.add('bg-red-100', 'text-red-800');
+                    break;
+                default: // Handles "N/A" for non-crops
+                    resultCard.classList.add('bg-gray-100', 'text-gray-800');
+                    reasonText.innerText = cropInfo.reason;
+            }
+            
+            setTimeout(() => resultCard.classList.add('show'), 10);
+        }
+
+        async function callGeminiAPI(prompt, base64ImageData = null, retries = 3, delay = 1000, useGrounding = false) {
+            const apiKey = "AIzaSyDy09dQCf_by10TyEVFjlE4cM4qUUtnFgs"; // Will be provided by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+            };
+
+            if (base64ImageData) {
+                payload.contents[0].parts.push({
+                    inlineData: {
+                        mimeType: "image/jpeg",
+                        data: base64ImageData
+                    }
+                });
+            }
+
+            if (useGrounding) {
+                payload.tools = [{ "google_search": {} }];
+            }
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                         return result;
+                    } else {
+                         throw new Error("Invalid or empty response structure from AI API.");
+                    }
+                   
+                } catch (error) {
+                    console.warn(`Attempt ${i + 1} failed. Retrying in ${delay / 1000}s...`);
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Supply Chain - Authentication</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src-attr 'unsafe-inline' 'unsafe-hashes'; style-src 'self' 'unsafe-inline' https:; style-src-elem 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' http://localhost:3000 ws: wss:; media-src 'self' data: blob:;">
+    <link rel="stylesheet" href="/auth/styles.css">
+    <style>
+        .lang {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 10px; border: 1px solid #2c3e50; border-radius: 10px; background: #ffffff; color: #000000;
+        }
+        .lang label { font-size: 14px; color: #000000; }
+        .lang select {
+            min-width: 160px;
+            background: #ddcfebf0;
+            color: #4f85df;
+            border: none;
+            outline: none;
+        }
+    </style>
+    <script src="/i18n.js"></script>
+    <script src="/translations.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // Force using backend origin to avoid double-login due to different origins (8000 vs 3000)
+        (function() {
+            try {
+                var desiredOrigin = window.location.protocol + '//' + 'localhost:3000';
+                if (window.location.origin !== desiredOrigin) {
+                    var newUrl = desiredOrigin + '/auth/index.html';
+                    window.location.replace(newUrl);
+                }
+            } catch (_) {}
+        })();
+    </script>
+    <div class="auth-container">
+        <!-- Header -->
+        <header class="auth-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-seedling"></i>
+                    <h1 data-i18n="brand">AgriChain</h1>
+                </div>
+                <p class="tagline" data-i18n="auth.tagline">Connecting Farmers, Officers & Customers</p>
+                <div class="lang" id="authLang">
+                    <label for="authLangSelect" data-i18n="lang.label">Language</label>
+                    <select id="authLangSelect"></select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="auth-main">
+            <div class="auth-content">
+                <div class="welcome-section">
+                    <h2 data-i18n="auth.welcomeTitle">Welcome to Agricultural Supply Chain</h2>
+                    <p data-i18n="auth.welcomeSubtitle">Choose your role to continue</p>
+                </div>
+
+                <!-- Role Selection Cards -->
+                <div class="role-cards">
+                    <!-- Farmer Card -->
+                    <div class="role-card farmer-card" onclick="selectRole('farmer')">
+                        <div class="card-icon">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <h3 data-i18n="auth.roles.farmer.title">Farmer</h3>
+                        <p data-i18n="auth.roles.farmer.desc">Sell your crops directly to customers or through Agricultural Verification Officers</p>
+                        <div class="card-features">
+                            <span class="feature-tag">Direct Sales</span>
+                            <span class="feature-tag">Fixed Pricing</span>
+                            <span class="feature-tag">Quality Verification</span>
+                        </div>
+                    </div>
+
+                    <!-- Agricultural Verification Officer Card -->
+                    <div class="role-card officer-card" onclick="selectRole('officer')">
+                        <div class="card-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <h3 data-i18n="auth.roles.officer.title">Agricultural Verification Officer</h3>
+                        <p data-i18n="auth.roles.officer.desc">Verify crops, analyze quality, set prices, and manage the supply chain</p>
+                        <div class="card-features">
+                            <span class="feature-tag">Quality Analysis</span>
+                            <span class="feature-tag">Price Setting</span>
+                            <span class="feature-tag">Crop Verification</span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Card -->
+                    <div class="role-card customer-card" onclick="selectRole('customer')">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 data-i18n="auth.roles.customer.title">Customer</h3>
+                        <p data-i18n="auth.roles.customer.desc">Buy fresh, verified crops from farmers or Agricultural Verification Officers</p>
+                        <div class="card-features">
+                            <span class="feature-tag">Fresh Produce</span>
+                            <span class="feature-tag">Quality Assured</span>
+                            <span class="feature-tag">Direct Purchase</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication Forms Container -->
+                <div class="auth-forms-container" id="authForms">
+                    <!-- Farmer Authentication -->
+                    <div class="auth-form-container" id="farmerAuth" style="display: none;">
+                        <div class="form-header">
+                            <h3><i class="fas fa-tractor"></i> <span data-i18n="auth.roles.farmer.title">Farmer</span> Authentication</h3>
+                            <button class="back-btn" onclick="showRoleSelection()">
+                                <i class="fas fa-arrow-left"></i> <span data-i18n="auth.common.back">Back</span>
+                            </button>
+                        </div>
+                        
+                        <div class="form-tabs">
+                            <button class="tab-btn active" onclick="showTab('farmer', 'login')" data-i18n="auth.common.login">Login</button>
+                            <button class="tab-btn" onclick="showTab('farmer', 'register')" data-i18n="auth.common.register">Register</button>
+                        </div>
+
+                        <!-- Farmer Login Form -->
+                        <div class="form-content" id="farmerLogin">
+                            <form id="farmerLoginForm">
+                                <div class="form-group">
+                                    <label for="farmerAadhar">Aadhar Number</label>
+                                    <input type="text" id="farmerAadhar" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="farmerDOB">Date of Birth</label>
+                                    <input type="date" id="farmerDOB" name="dateOfBirth" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="farmerWalletLogin">MetaMask Address</label>
+                                    <input type="text" id="farmerWalletLogin" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-sign-in-alt"></i> <span data-i18n="auth.common.login">Login</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Farmer Registration Form -->
+                        <div class="form-content" id="farmerRegister" style="display: none;">
+                            <form id="farmerRegisterForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="farmerName">Full Name</label>
+                                        <input type="text" id="farmerName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="farmerAge">Age</label>
+                                        <input type="number" id="farmerAge" name="age" min="18" max="100" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="farmerDOBReg">Date of Birth</label>
+                                        <input type="date" id="farmerDOBReg" name="dateOfBirth" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="farmerGender">Gender</label>
+                                        <select id="farmerGender" name="gender" required>
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerEmail">Email (Optional)</label>
+                                    <input type="email" id="farmerEmail" name="email">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerPhone">Phone Number</label>
+                                    <input type="tel" id="farmerPhone" name="phone" placeholder="Enter 10-digit mobile number" maxlength="10" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="farmerWalletReg">MetaMask Address</label>
+                                    <input type="text" id="farmerWalletReg" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerAadharReg">Aadhar Number</label>
+                                    <input type="text" id="farmerAadharReg" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerStreet">Street Address</label>
+                                    <input type="text" id="farmerStreet" name="street" placeholder="Enter street address" required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="farmerVillage">Village/City</label>
+                                        <input type="text" id="farmerVillage" name="village" placeholder="Enter village/city" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="farmerDistrict">District</label>
+                                        <input type="text" id="farmerDistrict" name="district" placeholder="Enter district" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="farmerState">State</label>
+                                        <input type="text" id="farmerState" name="state" placeholder="Enter state" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="farmerPincode">Pincode</label>
+                                        <input type="text" id="farmerPincode" name="pincode" placeholder="Enter pincode" maxlength="6" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerFarmSize">Farm Size (acres)</label>
+                                    <input type="number" id="farmerFarmSize" name="farmSize" placeholder="Enter farm size in acres" step="0.01" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerCropTypes">Crop Types (comma separated)</label>
+                                    <input type="text" id="farmerCropTypes" name="cropTypes" placeholder="e.g., Rice, Wheat, Corn" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="farmerBankName">Bank Name</label>
+                                    <input type="text" id="farmerBankName" name="bankName" placeholder="Enter bank name" required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="farmerAccountNumber">Account Number</label>
+                                        <input type="text" id="farmerAccountNumber" name="accountNumber" placeholder="Enter account number" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="farmerIFSC">IFSC Code</label>
+                                        <input type="text" id="farmerIFSC" name="ifscCode" placeholder="Enter IFSC code" required>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-user-plus"></i> <span data-i18n="auth.common.register">Register</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Agricultural Verification Officer Authentication -->
+                    <div class="auth-form-container" id="officerAuth" style="display: none;">
+                        <div class="form-header">
+                            <h3><i class="fas fa-clipboard-check"></i> <span data-i18n="auth.roles.officer.title">Agricultural Verification Officer</span></h3>
+                            <button class="back-btn" onclick="showRoleSelection()">
+                                <i class="fas fa-arrow-left"></i> <span data-i18n="auth.common.back">Back</span>
+                            </button>
+                        </div>
+                        
+                        <div class="form-tabs">
+                            <button class="tab-btn active" onclick="showTab('officer', 'login')" data-i18n="auth.common.login">Login</button>
+                            <button class="tab-btn" onclick="showTab('officer', 'register')" data-i18n="auth.common.register">Register</button>
+                        </div>
+
+                        <!-- Officer Login Form -->
+                        <div class="form-content" id="officerLogin">
+                            <form id="officerLoginForm">
+                                <div class="form-group">
+                                    <label for="officerAadhar">Aadhar Number</label>
+                                    <input type="text" id="officerAadhar" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="officerDOB">Date of Birth</label>
+                                    <input type="date" id="officerDOB" name="dateOfBirth" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="officerWalletLogin">MetaMask Address</label>
+                                    <input type="text" id="officerWalletLogin" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-sign-in-alt"></i> <span data-i18n="auth.common.login">Login</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Officer Registration Form -->
+                        <div class="form-content" id="officerRegister" style="display: none;">
+                            <form id="officerRegisterForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="officerName">Full Name</label>
+                                        <input type="text" id="officerName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="officerAge">Age</label>
+                                        <input type="number" id="officerAge" name="age" min="21" max="65" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="officerDOBReg">Date of Birth</label>
+                                        <input type="date" id="officerDOBReg" name="dateOfBirth" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="officerGender">Gender</label>
+                                        <select id="officerGender" name="gender" required>
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerEmail">Email</label>
+                                    <input type="email" id="officerEmail" name="email" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerPhone">Phone Number</label>
+                                    <input type="tel" id="officerPhone" name="phone" placeholder="Enter 10-digit mobile number" maxlength="10" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerAadhar">Aadhar Number</label>
+                                    <input type="text" id="officerAadhar" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="officerRole">Role</label>
+                                        <select id="officerRole" name="role" required>
+                                            <option value="">Select Role</option>
+                                            <option value="QUALITY_INSPECTOR">Quality Inspector</option>
+                                            <option value="PRICE_APPROVER">Price Approver</option>
+                                            <option value="COLLECTION_CENTER_MANAGER">Collection Center Manager</option>
+                                            <option value="DISTRICT_COORDINATOR">District Coordinator</option>
+                                            <option value="STATE_COORDINATOR">State Coordinator</option>
+                                            <option value="ADMIN">Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="officerDepartment">Department</label>
+                                        <select id="officerDepartment" name="department" required>
+                                            <option value="">Select Department</option>
+                                            <option value="AGRICULTURE">Agriculture</option>
+                                            <option value="HORTICULTURE">Horticulture</option>
+                                            <option value="FOOD_PROCESSING">Food Processing</option>
+                                            <option value="COOPERATIVE">Cooperative</option>
+                                            <option value="MARKETING">Marketing</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerDesignation">Designation</label>
+                                    <input type="text" id="officerDesignation" name="designation" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerDistrict">District</label>
+                                    <input type="text" id="officerDistrict" name="district" placeholder="Enter district" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerState">State</label>
+                                    <input type="text" id="officerState" name="state" placeholder="Enter state" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerOfficeStreet">Office Street Address</label>
+                                    <input type="text" id="officerOfficeStreet" name="officeStreet" placeholder="Enter office street address" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerOfficeCity">Office City</label>
+                                    <input type="text" id="officerOfficeCity" name="officeCity" placeholder="Enter office city" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerOfficePincode">Office Pincode</label>
+                                    <input type="text" id="officerOfficePincode" name="officePincode" placeholder="Enter office pincode" maxlength="6" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="officerQualifications">Qualifications</label>
+                                    <input type="text" id="officerQualifications" name="qualifications" placeholder="Enter your qualifications" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="officerWalletReg">MetaMask Address</label>
+                                    <input type="text" id="officerWalletReg" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-user-plus"></i> <span data-i18n="auth.common.register">Register</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Customer Authentication -->
+                    <div class="auth-form-container" id="customerAuth" style="display: none;">
+                        <div class="form-header">
+                            <h3><i class="fas fa-shopping-cart"></i> <span data-i18n="auth.roles.customer.title">Customer</span> Authentication</h3>
+                            <button class="back-btn" onclick="showRoleSelection()">
+                                <i class="fas fa-arrow-left"></i> <span data-i18n="auth.common.back">Back</span>
+                            </button>
+                        </div>
+                        
+                        <div class="form-tabs">
+                            <button class="tab-btn active" onclick="showTab('customer', 'login')" data-i18n="auth.common.login">Login</button>
+                            <button class="tab-btn" onclick="showTab('customer', 'register')" data-i18n="auth.common.register">Register</button>
+                        </div>
+
+                        <!-- Customer Login Form -->
+                        <div class="form-content" id="customerLogin">
+                            <form id="customerLoginForm">
+                                <div class="form-group">
+                                    <label for="customerAadhar">Aadhar Number</label>
+                                    <input type="text" id="customerAadhar" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerDOB">Date of Birth</label>
+                                    <input type="date" id="customerDOB" name="dateOfBirth" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerWalletLogin">MetaMask Address</label>
+                                    <input type="text" id="customerWalletLogin" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-sign-in-alt"></i> <span data-i18n="auth.common.login">Login</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Customer Registration Form -->
+                        <div class="form-content" id="customerRegister" style="display: none;">
+                            <form id="customerRegisterForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="customerName">Full Name</label>
+                                        <input type="text" id="customerName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="customerAge">Age</label>
+                                        <input type="number" id="customerAge" name="age" min="18" max="100" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="customerDOBReg">Date of Birth</label>
+                                        <input type="date" id="customerDOBReg" name="dateOfBirth" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="customerGender">Gender</label>
+                                        <select id="customerGender" name="gender" required>
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerEmail">Email</label>
+                                    <input type="email" id="customerEmail" name="email" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerPhone">Phone Number</label>
+                                    <input type="tel" id="customerPhone" name="phone" placeholder="Enter 10-digit mobile number" maxlength="10" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerAadharReg">Aadhar Number</label>
+                                    <input type="text" id="customerAadharReg" name="aadharNumber" placeholder="Enter 12-digit Aadhar number" maxlength="12" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerType">Customer Type</label>
+                                    <select id="customerType" name="customerType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="INDIVIDUAL">Individual</option>
+                                        <option value="RETAILER">Retailer</option>
+                                        <option value="WHOLESALER">Wholesaler</option>
+                                        <option value="RESTAURANT">Restaurant</option>
+                                        <option value="INSTITUTION">Institution</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerStreet">Street Address</label>
+                                    <input type="text" id="customerStreet" name="street" placeholder="Enter street address" required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="customerCity">City</label>
+                                        <input type="text" id="customerCity" name="city" placeholder="Enter city" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="customerDistrict">District</label>
+                                        <input type="text" id="customerDistrict" name="district" placeholder="Enter district" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="customerState">State</label>
+                                        <input type="text" id="customerState" name="state" placeholder="Enter state" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="customerPincode">Pincode</label>
+                                        <input type="text" id="customerPincode" name="pincode" placeholder="Enter pincode" maxlength="6" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerBusinessName">Business Name (Optional)</label>
+                                    <input type="text" id="customerBusinessName" name="businessName" placeholder="Enter business name if applicable">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="customerBusinessType">Business Type (Optional)</label>
+                                    <input type="text" id="customerBusinessType" name="businessType" placeholder="Enter business type if applicable">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerWalletReg">MetaMask Address</label>
+                                    <input type="text" id="customerWalletReg" name="walletAddress" placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$" required>
+                                </div>
+
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-user-plus"></i> <span data-i18n="auth.common.register">Register</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script>
+        (function initI18n(){
+            var sel = document.getElementById('authLangSelect');
+            // build options
+            var langs = [
+                { code: 'en', label: 'English' },
+                { code: 'hi', label: 'हिन्दी (Hindi)' },
+                { code: 'te', label: 'తెలుగు (Telugu)' },
+                { code: 'kn', label: 'ಕನ್ನಡ (Kannada)' }
+            ];
+            langs.forEach(function(l){ var o=document.createElement('option'); o.value=l.code; o.textContent=l.label; sel.appendChild(o); });
+            I18n.init({ translations: window.translations, defaultLang: 'en' });
+            sel.value = I18n.current;
+            sel.addEventListener('change', function(e){ I18n.apply(e.target.value); });
+        })();
+    </script>
+    <script src="/auth/script.js"></script>
+</body>
+</html>

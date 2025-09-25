@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification & Pricing - Officer</title>
+    <link rel="stylesheet" href="/govt-portal/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-tasks"></i>
+                <span>Verification & Pricing</span>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <span class="user-code" id="userCode">Loading...</span>
+                </div>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="content-sections">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-inbox"></i> Pending Farmer Requests</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="refreshRequests()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                </div>
+                <div class="requests-grid" id="pendingRequestsGrid"></div>
+            </div>
+
+            <div class="content-section" id="verificationPanel" style="display:none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-search"></i> Verification Details</h2>
+                </div>
+                <form id="verificationForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Actual Quantity (kg)</label>
+                            <input type="number" id="vfQty" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quality Grade</label>
+                            <select id="vfGrade" required>
+                                <option value="">Select</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Shelf Life</label>
+                            <div class="lifespan-input-group">
+                                <input type="number" id="vfLife" min="1" required>
+                                <select id="vfLifeUnit" required>
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                    <option value="months">Months</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Quality Notes</label>
+                        <textarea id="vfNotes" placeholder="Assessment notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Images</label>
+                        <input type="file" id="vfImages" accept="image/*" multiple>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="hideVerificationPanel()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save Verification</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-section" id="pricingPanel" style="display:none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-rupee-sign"></i> Set Price</h2>
+                </div>
+                <form id="pricingForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Purchase Price per Kg (₹)</label>
+                            <input type="number" id="prPurchase" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Selling Price per Kg (₹)</label>
+                            <input type="number" id="prSelling" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Price Notes</label>
+                        <textarea id="prNotes" placeholder="Reasoning / market conditions..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="hidePricingPanel()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Price</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/govt-portal/verification-pricing.js"></script>
+</body>
+</html>
+

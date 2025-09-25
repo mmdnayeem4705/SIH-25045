@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Verification Officer Dashboard - AgriChain</title>
+    <link rel="stylesheet" href="/govt-portal/styles.css">
+    <style>
+        .lang { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid #2c3e50; border-radius:10px; background:#ffffff; color:#000000; }
+        .lang label { font-size:14px; color:#000000; }
+        .lang select {
+            min-width: 160px;
+            background: #ddd8e2f0;
+            color: #4f85df;
+            border: none;
+            outline: none;
+        }
+    </style>
+    <script src="/i18n.js"></script>
+    <script src="/translations.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // Force backend origin to avoid mixed origins causing navigation/token issues
+        (function() {
+            try {
+                var desiredOrigin = window.location.protocol + '//' + 'localhost:3000';
+                if (window.location.origin !== desiredOrigin) {
+                    var path = window.location.pathname.replace(/.*\/govt-portal\//, '/govt-portal/');
+                    window.location.replace(desiredOrigin + path);
+                }
+            } catch (_) {}
+        })();
+    </script>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-clipboard-check"></i>
+                <span data-i18n="nav.officerPortal">AgriChain - Officer Portal</span>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <span class="user-code" id="userCode">Loading...</span>
+                </div>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <div class="lang" style="margin-left:12px">
+                    <label for="officerLang" data-i18n="lang.label">Language</label>
+                    <select id="officerLang"></select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1 data-i18n="officer.welcomeTitle">Agricultural Verification Officer Dashboard</h1>
+            <p data-i18n="officer.welcomeSubtitle">Verify crops, analyze quality, set prices, and manage the agricultural supply chain</p>
+        </div>
+
+        <!-- Main Action Cards -->
+        <div class="action-cards">
+            <!-- Unified Verification & Pricing Card -->
+            <a href="http://localhost:3000/govt-portal/verification-pricing.html" style="text-decoration: none; color: inherit;">
+            <div class="action-card verification-card" id="verificationPricingCard" role="button" tabindex="0">
+                <div class="card-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3 data-i18n="officer.cards.verify.title">Pricing</h3>
+                <p data-i18n="officer.cards.verify.desc">Verify crops and set prices in one flow</p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="pendingVerifications">0</span>
+                        <span class="stat-label">Pending Verifications</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="pendingPricing">0</span>
+                        <span class="stat-label">Pending Pricing</span>
+                    </div>
+                </div>
+            </div>
+            </a>
+
+            <!-- Sales Management Card -->
+            <div class="action-card sales-card" onclick="showSalesManagement()">
+                <div class="card-icon">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h3 data-i18n="officer.cards.sales.title">Sales Management</h3>
+                <p data-i18n="officer.cards.sales.desc">Sell verified crops to customers and manage sales transactions</p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="activeSales">0</span>
+                        <span class="stat-label">Active Sales</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="salesRevenue">₹0</span>
+                        <span class="stat-label">Sales Revenue</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="content-sections">
+            <!-- Unified Workflow Section moved to its own page -->
+
+            <!-- Sales Management Section -->
+            <div class="content-section" id="salesManagementSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-store"></i> Sales Management</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showNewSaleModal()">
+                            <i class="fas fa-plus"></i> New Sale
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Sales -->
+                <div class="active-sales">
+                    <h3>Active Sales</h3>
+                    <div class="sales-grid" id="activeSalesGrid">
+                        <!-- Active sales will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Sales History -->
+                <div class="sales-history">
+                    <h3>Sales History</h3>
+                    <div class="history-table" id="salesHistoryTable">
+                        <!-- Sales history will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalVerifications">0</h3>
+                    <p>Total Verifications</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalRevenue">₹0</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalTransactions">0</h3>
+                    <p>Total Transactions</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="officerRating">0.0</h3>
+                    <p>Your Rating</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div style="text-align:center;">
+        <a href="index12.html" 
+           style="text-decoration:none; padding:12px 24px; background:#4CAF50; color:white; font-size:18px; border-radius:8px;">
+           Verify Crop
+        </a>
+      </div>
+    <!-- Crop Verification Modal -->
+    <div class="modal" id="cropVerificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-search"></i> Crop Verification</h2>
+                <button class="close-btn" onclick="closeModal('cropVerificationModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cropVerificationForm">
+                    <div class="verification-details">
+                        <h3>Crop Details</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Crop Name:</label>
+                                <span id="verificationCropName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Farmer:</label>
+                                <span id="verificationFarmerName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Quantity:</label>
+                                <span id="verificationQuantity">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Harvest Date:</label>
+                                <span id="verificationHarvestDate">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="verification-form">
+                        <h3>Verification Results</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="actualQuantity">Actual Quantity (kg)</label>
+                                <input type="number" id="actualQuantity" name="actualQuantity" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qualityGrade">Quality Grade</label>
+                                <select id="qualityGrade" name="qualityGrade" required>
+                                    <option value="">Select Grade</option>
+                                    <option value="A">Grade A (Excellent)</option>
+                                    <option value="B">Grade B (Good)</option>
+                                    <option value="C">Grade C (Average)</option>
+                                    <option value="D">Grade D (Below Average)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="qualityNotes">Quality Assessment Notes</label>
+                            <textarea id="qualityNotes" name="qualityNotes" placeholder="Detailed assessment of crop quality, any issues found, recommendations, etc." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recommendedPrice">Recommended Price per Kg (₹)</label>
+                            <input type="number" id="recommendedPrice" name="recommendedPrice" min="0" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="verificationStatus">Verification Status</label>
+                            <select id="verificationStatus" name="verificationStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="REJECTED">Rejected</option>
+                                <option value="CONDITIONAL">Conditional Approval</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('cropVerificationModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Complete Verification
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Setting Modal -->
+    <div class="modal" id="priceSettingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-rupee-sign"></i> Set Crop Price</h2>
+                <button class="close-btn" onclick="closeModal('priceSettingModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="priceSettingForm">
+                    <div class="form-group">
+                        <label for="priceCropSelect">Select Crop</label>
+                        <select id="priceCropSelect" name="cropId" required>
+                            <option value="">Select Crop</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="purchasePrice">Purchase Price per Kg (₹)</label>
+                            <input type="number" id="purchasePrice" name="purchasePrice" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellingPrice">Selling Price per Kg (₹)</label>
+                            <input type="number" id="sellingPrice" name="sellingPrice" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priceNotes">Price Notes</label>
+                        <textarea id="priceNotes" name="priceNotes" placeholder="Reasoning for pricing, market conditions, quality factors, etc."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('priceSettingModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Set Price
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Sale Modal -->
+    <div class="modal" id="newSaleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-store"></i> New Sale</h2>
+                <button class="close-btn" onclick="closeModal('newSaleModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newSaleForm">
+                    <div class="form-group">
+                        <label for="saleCropSelect">Select Crop</label>
+                        <select id="saleCropSelect" name="cropId" required>
+                            <option value="">Select Crop</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="saleCustomerSelect">Select Customer</label>
+                        <select id="saleCustomerSelect" name="customerId" required>
+                            <option value="">Select Customer</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="saleQuantity">Quantity (kg)</label>
+                            <input type="number" id="saleQuantity" name="quantity" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="salePrice">Price per Kg (₹)</label>
+                            <input type="number" id="salePrice" name="pricePerKg" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="saleNotes">Sale Notes</label>
+                        <textarea id="saleNotes" name="notes" placeholder="Additional notes about the sale"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('newSaleModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Complete Sale
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function initI18n(){
+            var target = document.getElementById('officerLang');
+            var langs = [
+                { code: 'en', label: 'English' },
+                { code: 'hi', label: 'हिन्दी (Hindi)' },
+                { code: 'te', label: 'తెలుగు (Telugu)' },
+                { code: 'kn', label: 'ಕನ್ನಡ (Kannada)' }
+            ];
+            langs.forEach(function(l){ var o=document.createElement('option'); o.value=l.code; o.textContent=l.label; target.appendChild(o); });
+            I18n.init({ translations: window.translations, defaultLang: 'en' });
+            target.value = I18n.current;
+            target.addEventListener('change', function(e){ I18n.apply(e.target.value); });
+        })();
+    </script>
+    <script src="/govt-portal/script.js"></script>
+</body>
+</html>
