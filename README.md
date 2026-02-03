@@ -419,11 +419,26 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Database Design**: PostgreSQL schema design
 - **UI/UX Design**: Responsive web design
 
-## 📞 Support
+✅ Option 1: Transfer tokens (MOST COMMON)
 
-For support and questions:
-- Email: support@agrisupplychain.com
-- Documentation: [Project Wiki](https://github.com/agrisupplychain/wiki)
+Use this if your token was deployed to your own account (default deployer).
+
+1️⃣ Open Hardhat console
+npx hardhat console --network localhost
+
+2️⃣ Run these commands (replace contract address 👇)
+const token = await ethers.getContractAt(
+  "FakeETHToken",
+  "PASTE_YOUR_CONTRACT_ADDRESS_HERE"
+)
+
+await token.transfer(
+  "0xE07E825A8099d38c6f98B4c79f7B40bF8A9D57EE",
+  ethers.parseUnits("1000", 18)
+)
+
+
+✅ This sends 1000 fETH to that account.
 - Issues: [GitHub Issues](https://github.com/agrisupplychain/issues)
 
 ---
